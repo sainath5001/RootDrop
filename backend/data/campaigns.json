@@ -1,14 +1,16 @@
 [
   {
     "campaignId": 0,
-    "merkleRoot": "0x123",
-    "tokenContract": "0x456",
+    "merkleRoot": "0xf1f143a9cd214014a785fdde0c5061743f403e16a9115f33468537236d5afdc5",
+    "tokenContract": "0x50eDe9B383248648d446646BE0aB44927279d766",
     "isRunesToken": false,
-    "tokenIds": [],
-    "metadata": "{}",
-    "startTime": 1000,
-    "endTime": 2000,
-    "createdAt": "2026-01-03T04:21:26.387Z"
+    "tokenIds": [
+      "1"
+    ],
+    "metadata": "{\"name\":\"My First Test Campaign\"}",
+    "startTime": 1767430897,
+    "endTime": 1770022897,
+    "createdAt": "2026-01-03T09:01:37.305Z"
   },
   {
     "campaignId": 1,
