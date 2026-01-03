@@ -141,19 +141,21 @@ export function CreateCampaignForm() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-2xl font-bold mb-6">Create New Campaign</h2>
+    <div>
+      <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+        Create New Campaign
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Campaign Name
           </label>
           <input
             type="text"
             value={formData.campaignName}
             onChange={(e) => setFormData({ ...formData, campaignName: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             required
           />
         </div>
@@ -165,20 +167,20 @@ export function CreateCampaignForm() {
               checked={formData.isRunesToken}
               onChange={(e) => setFormData({ ...formData, isRunesToken: e.target.checked })}
             />
-            <span className="text-sm font-medium text-gray-700">RUNES Token Campaign</span>
+            <span className="text-sm font-semibold text-gray-700">RUNES Token Campaign</span>
           </label>
         </div>
 
         {formData.isRunesToken ? (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               RUNES Token Address
             </label>
             <input
               type="text"
               value={formData.runesTokenAddress}
               onChange={(e) => setFormData({ ...formData, runesTokenAddress: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               placeholder="0x..."
               required={formData.isRunesToken}
             />
@@ -186,28 +188,28 @@ export function CreateCampaignForm() {
         ) : (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Token Contract Address
               </label>
               <input
                 type="text"
                 value={formData.tokenContract}
                 onChange={(e) => setFormData({ ...formData, tokenContract: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="0x..."
                 required={!formData.isRunesToken}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Token IDs (comma-separated)
               </label>
               <input
                 type="text"
                 value={formData.tokenIds}
                 onChange={(e) => setFormData({ ...formData, tokenIds: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="1, 2, 3"
                 required={!formData.isRunesToken}
               />
@@ -216,14 +218,14 @@ export function CreateCampaignForm() {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Merkle Root
           </label>
           <input
             type="text"
             value={formData.merkleRoot}
             onChange={(e) => setFormData({ ...formData, merkleRoot: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
             placeholder="0xf1f143a9cd214014a785fdde0c5061743f403e16a9115f33468537236d5afdc5"
             required
           />
@@ -233,14 +235,14 @@ export function CreateCampaignForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Recipients CSV File (Optional - for reference)
           </label>
           <input
             type="file"
             accept=".csv"
             onChange={handleFileChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
           />
           <p className="mt-1 text-sm text-gray-500">
             Format: address,tokenId,amount
@@ -249,60 +251,81 @@ export function CreateCampaignForm() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Start Time
             </label>
             <input
               type="datetime-local"
               value={formData.startTime}
               onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               End Time
             </label>
             <input
               type="datetime-local"
               value={formData.endTime}
               onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               required
             />
           </div>
         </div>
 
         {createCampaignContract.error && (
-          <div className="bg-red-50 border border-red-200 rounded p-4">
-            <p className="text-red-800">
-              Error: {createCampaignContract.error.message || 'Transaction failed'}
-            </p>
+          <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-xl p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <p className="text-red-800 font-bold">
+                Error: {createCampaignContract.error.message || 'Transaction failed'}
+              </p>
+            </div>
           </div>
         )}
 
         {createCampaignContract.isPending && (
-          <div className="bg-blue-50 border border-blue-200 rounded p-4">
-            <p className="text-blue-800">
-              ⏳ Waiting for MetaMask approval... Please check your MetaMask window.
-            </p>
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-blue-800 font-semibold">
+                Waiting for MetaMask approval... Please check your MetaMask window.
+              </p>
+            </div>
           </div>
         )}
 
         {createCampaignContract.isConfirming && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
-            <p className="text-yellow-800">
-              ⏳ Transaction submitted! Waiting for confirmation...
-            </p>
+          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-xl p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center animate-spin">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+              <p className="text-yellow-800 font-semibold">
+                Transaction submitted! Waiting for confirmation...
+              </p>
+            </div>
           </div>
         )}
 
         <button
           type="submit"
           disabled={createCampaignContract.isPending || createCampaignContract.isConfirming || createCampaignAPI.isPending}
-          className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+          className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed"
         >
           {createCampaignContract.isPending
             ? 'Waiting for MetaMask...'

@@ -73,40 +73,47 @@ export function ClaimForm() {
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Campaign ID
         </label>
         <input
           type="number"
           value={campaignId}
           onChange={(e) => setCampaignId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-lg"
           placeholder="0"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           Token ID
         </label>
         <input
           type="number"
           value={tokenId}
           onChange={(e) => setTokenId(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-lg"
           placeholder="1"
         />
       </div>
 
       {!address && campaignId && tokenId && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mt-4">
-          <p className="text-yellow-800 font-semibold">
-            ⚠️ Wallet Not Connected
+        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-xl p-6 mt-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <p className="text-yellow-800 font-bold text-lg">
+              Wallet Not Connected
+            </p>
+          </div>
+          <p className="text-sm text-yellow-700 mb-2">
+            You've entered Campaign ID: <span className="font-semibold">{campaignId}</span> and Token ID: <span className="font-semibold">{tokenId}</span>
           </p>
-          <p className="text-sm text-yellow-700 mt-2">
-            You've entered Campaign ID: {campaignId} and Token ID: {tokenId}
-          </p>
-          <p className="text-sm text-yellow-700 mt-1">
+          <p className="text-sm text-yellow-700">
             Please connect your wallet using the button in the top right corner to check eligibility.
           </p>
         </div>
@@ -130,14 +137,15 @@ export function ClaimForm() {
                 alert(`API Test FAILED: ${error.message}`);
               }
             }}
-            className="mb-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            className="mb-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium"
           >
             🔧 Test API Connection
           </button>
 
           {isLoadingProof ? (
-            <div className="text-center py-4">
-              <p>Loading proof...</p>
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
+              <p className="text-lg font-semibold text-gray-900">Loading proof...</p>
               <p className="text-sm text-gray-500 mt-2">
                 Checking eligibility for address: {address.slice(0, 6)}...{address.slice(-4)}
               </p>
@@ -146,37 +154,60 @@ export function ClaimForm() {
               </p>
             </div>
           ) : proofError ? (
-            <div className="bg-red-50 border border-red-200 rounded p-4">
-              <p className="text-red-800">
-                {proofError.message || 'Not eligible for this airdrop'}
-              </p>
-              <p className="text-sm text-red-600 mt-2">
+            <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <p className="text-red-800 font-bold text-lg">
+                  {proofError.message || 'Not eligible for this airdrop'}
+                </p>
+              </div>
+              <p className="text-sm text-red-700">
                 Make sure your wallet address matches the one in the campaign CSV file.
               </p>
             </div>
           ) : proofData ? (
             <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded p-4">
-                <p className="text-green-800 font-semibold mb-2">
-                  ✓ You are eligible for this airdrop!
-                </p>
-                <p className="text-sm text-green-700">
-                  Amount: {proofData.amount} tokens
-                </p>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-green-800 font-bold text-xl">
+                      You are eligible for this airdrop!
+                    </p>
+                    <p className="text-lg text-green-700 font-semibold mt-1">
+                      Amount: {proofData.amount} tokens
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {isClaimedData ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
-                  <p className="text-yellow-800 font-semibold">
-                    ⚠️ You have already claimed this airdrop
-                  </p>
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-xl p-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <p className="text-yellow-800 font-bold text-lg">
+                      You have already claimed this airdrop
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <>
                   {balance !== undefined && (
-                    <div className="bg-blue-50 border border-blue-200 rounded p-4">
-                      <p className="text-blue-800">
-                        Current Balance: {balance?.toString() || '0'} tokens
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-4">
+                      <p className="text-blue-800 font-semibold">
+                        Current Balance: <span className="text-xl font-bold">{balance?.toString() || '0'}</span> tokens
                       </p>
                     </div>
                   )}
@@ -184,7 +215,7 @@ export function ClaimForm() {
                   <button
                     onClick={handleClaim}
                     disabled={claim.isPending || claim.isConfirming}
-                    className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-semibold"
+                    className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 disabled:opacity-50 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed"
                   >
                     {claim.isPending
                       ? 'Preparing transaction...'
@@ -220,8 +251,13 @@ export function ClaimForm() {
               )}
             </div>
           ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded p-4">
-              <p className="text-gray-600">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-300 rounded-xl p-6 text-center">
+              <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-gray-700 font-semibold">
                 {!campaignId && !tokenId
                   ? 'Enter campaign ID and token ID to check eligibility'
                   : !address
