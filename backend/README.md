@@ -1,95 +1,414 @@
 # Rootstock ERC-1155 Airdrop Backend
 
-Node.js backend for the ERC-1155 airdrop system with Merkle tree generation, API server, and Rootstock integration.
+Node.js/Express backend service for the ERC-1155 airdrop system with Merkle tree generation, REST API, and Rootstock blockchain integration.
 
-## Features
+## 📋 Table of Contents
 
-- **Merkle Tree Generation**: Generate Merkle trees from CSV/JSON recipient lists
-- **REST API**: Endpoints for campaign management, proof retrieval, and status tracking
-- **RUNES Verification**: Verify bridged RUNES tokens (with mock support)
-- **Contract Integration**: Script to push merkle roots to smart contracts
-- **Persistent Storage**: JSON-based storage for campaigns and claims
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [API Reference](#api-reference)
+- [Merkle Tree Generation](#merkle-tree-generation)
+- [Usage](#usage)
+- [Testing](#testing)
+- [Deployment](#deployment)
 
-## Prerequisites
+## 🎯 Overview
+
+The backend service provides essential off-chain functionality for the airdrop system:
+
+- **Merkle Tree Generation**: Creates Merkle trees from recipient CSV/JSON files
+- **Proof API**: Provides Merkle proofs for eligible users
+- **Campaign Management**: Stores campaign metadata and tracks claims
+- **Blockchain Integration**: Scripts to interact with deployed smart contracts
+- **RUNES Verification**: Support for bridged RUNES token verification
+
+## 🏗️ Architecture
+
+### System Architecture
+
+```mermaid
+graph TB
+    subgraph "Backend Service"
+        API[Express API Server]
+        MT[Merkle Tree Generator]
+        DB[JSON Storage]
+        BC[Blockchain Client]
+    end
+    
+    subgraph "External"
+        Frontend[Frontend App]
+        CSV[CSV Files]
+        Contract[Smart Contract]
+        Users[Users]
+    end
+    
+    Frontend -->|HTTP Requests| API
+    CSV -->|Parse| MT
+    MT -->|Generate Tree| DB
+    API -->|Query Proofs| DB
+    API -->|Push Root| BC
+    BC -->|Transaction| Contract
+    Users -->|Request Proof| API
+    API -->|Return Proof| Users
+    
+    style API fill:#4A90E2
+    style MT fill:#50C878
+    style DB fill:#FF6B6B
+    style BC fill:#FFA500
+```
+
+### Request Flow
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Frontend
+    participant Backend
+    participant CSV
+    participant Contract
+    
+    Admin->>CSV: Create recipients CSV
+    Admin->>Frontend: Upload CSV
+    Frontend->>Backend: POST /campaigns (with CSV)
+    Backend->>Backend: Parse CSV
+    Backend->>Backend: Generate Merkle Tree
+    Backend->>Backend: Store campaign data
+    Backend->>Frontend: Return merkleRoot
+    Frontend->>Contract: createCampaign(merkleRoot)
+    
+    User->>Frontend: Enter campaign ID
+    Frontend->>Backend: GET /proof?campaignId=X&address=Y&tokenId=Z
+    Backend->>Backend: Lookup proof
+    Backend->>Frontend: Return merkle proof
+    Frontend->>Contract: claim(proof)
+```
+
+### Data Flow
+
+```mermaid
+flowchart LR
+    CSV[CSV File] -->|Parse| Recipients[Recipient List]
+    Recipients -->|Generate| MerkleTree[Merkle Tree]
+    MerkleTree -->|Extract| Root[Merkle Root]
+    MerkleTree -->|Generate| Proofs[Merkle Proofs]
+    Root -->|Store| Campaign[Campaign Data]
+    Proofs -->|Store| Campaign
+    Campaign -->|Query| API[API Endpoints]
+    API -->|Return| Users[Users]
+```
+
+## ✨ Features
+
+### Core Features
+
+1. **Merkle Tree Generation**
+   - Parse CSV/JSON recipient files
+   - Generate Merkle trees with configurable campaign IDs
+   - Export proofs for each recipient
+
+2. **REST API**
+   - Campaign management endpoints
+   - Proof retrieval endpoints
+   - Status and health check endpoints
+
+3. **Blockchain Integration**
+   - Push Merkle roots to smart contracts
+   - Verify contract state
+   - Transaction management
+
+4. **RUNES Support**
+   - Verify bridged RUNES tokens
+   - Mock verification for testing
+
+5. **Data Persistence**
+   - JSON-based storage for campaigns
+   - Claim tracking
+   - Campaign metadata
+
+## 🚀 Installation
+
+### Prerequisites
 
 - Node.js >= 18
 - npm or yarn
 - Access to Rootstock testnet/mainnet RPC
 
-## Installation
+### Setup
 
-1. Install dependencies:
+1. **Navigate to backend directory**:
+```bash
+cd backend
+```
+
+2. **Install dependencies**:
 ```bash
 npm install
 ```
 
-2. Copy environment file:
+3. **Copy environment file**:
 ```bash
 cp .env.example .env
 ```
 
-3. Configure `.env`:
-```env
-PORT=3000
-API_KEY=your-secret-api-key-here
+4. **Configure environment variables** (see [Configuration](#configuration))
 
+5. **Build TypeScript**:
+```bash
+npm run build
+```
+
+6. **Start the server**:
+```bash
+npm start
+```
+
+For development with auto-reload:
+```bash
+npm run dev
+```
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+Create a `.env` file in the backend directory:
+
+```env
+# Server Configuration
+PORT=3000
+API_KEY=your-secret-api-key-here-change-this
+
+# Rootstock RPC
 RPC_URL=https://public-node.testnet.rsk.co
 PRIVATE_KEY=your-private-key-without-0x-prefix
 
+# Contract Addresses
 AIRDROP_ENGINE_ADDRESS=0xe73ed2770E308cA94CB2Ad2E828af3832c19bfb2
 AIRDROP_TOKEN_ADDRESS=0x50eDe9B383248648d446646BE0aB44927279d766
 
+# RUNES Bridge (Optional)
 BRIDGE_API_KEY=your-bridge-api-key-here
 BRIDGE_API_URL=https://api.rootstock.io/bridge/v1
 USE_MOCK_RUNES_VERIFICATION=true
 ```
 
-4. Build TypeScript:
-```bash
-npm run build
+### Configuration Details
+
+- **PORT**: Server port (default: 3000)
+- **API_KEY**: Secret key for API authentication
+- **RPC_URL**: Rootstock RPC endpoint
+- **PRIVATE_KEY**: Private key for contract interactions (without 0x prefix)
+- **AIRDROP_ENGINE_ADDRESS**: Deployed AirdropEngine contract address
+- **AIRDROP_TOKEN_ADDRESS**: Deployed AirdropToken contract address
+- **USE_MOCK_RUNES_VERIFICATION**: Use mock RUNES verification (true for testing)
+
+## 📡 API Reference
+
+### Base URL
+
+```
+http://localhost:3000/api
 ```
 
-## Usage
+### Authentication
 
-### 1. Generate Merkle Tree
+All endpoints require the `X-API-Key` header:
 
-Create a CSV or JSON file with recipients:
-
-**CSV format** (`recipients.csv`):
-```csv
-address,tokenId,amount
-0x1111111111111111111111111111111111111111,1,100
-0x2222222222222222222222222222222222222222,1,200
-0x3333333333333333333333333333333333333333,2,150
+```
+X-API-Key: your-secret-api-key-here
 ```
 
-**JSON format** (`recipients.json`):
+### Endpoints
+
+#### 1. Create Campaign
+
+**POST** `/campaigns`
+
+Create a new campaign with recipients.
+
+**Request Body**:
+```json
+{
+  "name": "My Campaign",
+  "tokenContract": "0x50eDe9B383248648d446646BE0aB44927279d766",
+  "tokenIds": [1, 2],
+  "recipients": [
+    {
+      "address": "0x1111...",
+      "tokenId": 1,
+      "amount": 1000
+    }
+  ]
+}
+```
+
+**Response**:
+```json
+{
+  "campaignId": 0,
+  "merkleRoot": "0xf1f143a9cd214014a785fdde0c5061743f403e16a9115f33468537236d5afdc5",
+  "totalRecipients": 1
+}
+```
+
+#### 2. Get Campaign
+
+**GET** `/campaigns/:campaignId`
+
+Get campaign details.
+
+**Response**:
+```json
+{
+  "campaignId": 0,
+  "name": "My Campaign",
+  "tokenContract": "0x50eDe9B383248648d446646BE0aB44927279d766",
+  "tokenIds": [1, 2],
+  "merkleRoot": "0xf1f143a9cd214014a785fdde0c5061743f403e16a9115f33468537236d5afdc5",
+  "totalRecipients": 1,
+  "totalClaimed": 0
+}
+```
+
+#### 3. Get Proof
+
+**GET** `/proof`
+
+Get Merkle proof for a user.
+
+**Query Parameters**:
+- `campaignId` (required): Campaign ID
+- `address` (required): User wallet address
+- `tokenId` (required): Token ID
+
+**Example**:
+```
+GET /api/proof?campaignId=0&address=0x1111...&tokenId=1
+```
+
+**Response**:
+```json
+{
+  "proof": [
+    "0x1234...",
+    "0x5678..."
+  ],
+  "tokenId": "1",
+  "amount": "1000",
+  "leaf": "0xabcd..."
+}
+```
+
+**Error Response** (404):
+```json
+{
+  "error": "Proof not found for this address"
+}
+```
+
+#### 4. List Campaigns
+
+**GET** `/campaigns`
+
+Get all campaigns.
+
+**Response**:
 ```json
 [
   {
-    "address": "0x1111111111111111111111111111111111111111",
-    "tokenId": "1",
-    "amount": "100"
-  },
-  {
-    "address": "0x2222222222222222222222222222222222222222",
-    "tokenId": "1",
-    "amount": "200"
+    "campaignId": 0,
+    "name": "My Campaign",
+    "totalRecipients": 1
   }
 ]
 ```
 
-Generate Merkle tree:
-```bash
-npm run generate-merkle recipients.csv [campaign-id]
+#### 5. Health Check
+
+**GET** `/health`
+
+Check server health.
+
+**Response**:
+```json
+{
+  "status": "ok",
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
 ```
 
-Output files will be saved in `out/`:
-- `merkle-root-{timestamp}.json` - Merkle root and metadata
-- `proofs-{timestamp}.json` - Proofs for each address
-- `leaves-{timestamp}.json` - All merkle leaves
+## 🌳 Merkle Tree Generation
 
-### 2. Start API Server
+### CSV Format
+
+Create a CSV file with recipients:
+
+```csv
+address,tokenId,amount
+0x1111111111111111111111111111111111111111,1,1000
+0x2222222222222222222222222222222222222222,1,2000
+0x3333333333333333333333333333333333333333,2,1500
+```
+
+### Generate Merkle Tree
+
+#### Using Script
+
+```bash
+npm run generate-merkle -- --input test-recipients.csv --campaign-id 0
+```
+
+#### Using API
+
+```bash
+curl -X POST http://localhost:3000/api/campaigns \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
+  -d '{
+    "name": "My Campaign",
+    "tokenContract": "0x50eDe9B383248648d446646BE0aB44927279d766",
+    "tokenIds": [1],
+    "recipients": [
+      {"address": "0x1111...", "tokenId": 1, "amount": 1000}
+    ]
+  }'
+```
+
+### Merkle Tree Structure
+
+```mermaid
+graph TD
+    Root[Merkle Root] --> L1[Level 1]
+    L1 --> L2A[Level 2A]
+    L1 --> L2B[Level 2B]
+    L2A --> Leaf1[Leaf 1<br/>Hash of recipient 1]
+    L2A --> Leaf2[Leaf 2<br/>Hash of recipient 2]
+    L2B --> Leaf3[Leaf 3<br/>Hash of recipient 3]
+    L2B --> Leaf4[Leaf 4<br/>Hash of recipient 4]
+    
+    style Root fill:#4A90E2
+    style Leaf1 fill:#50C878
+    style Leaf2 fill:#50C878
+    style Leaf3 fill:#50C878
+    style Leaf4 fill:#50C878
+```
+
+### Leaf Hash Calculation
+
+The leaf hash is calculated as:
+
+```
+keccak256(abi.encodePacked(campaignId, address, tokenId, amount))
+```
+
+This matches the contract's verification logic.
+
+## 📖 Usage
+
+### Starting the Server
 
 ```bash
 # Development mode (with auto-reload)
@@ -100,194 +419,190 @@ npm run build
 npm start
 ```
 
-Server will run on `http://localhost:3000`
+### Generate Merkle Tree from CSV
 
-### 3. Push Merkle Root to Contract
-
-Create a campaign config file (`campaign-config.json`):
-```json
-{
-  "merkleRoot": "0x...",
-  "tokenContract": "0x50eDe9B383248648d446646BE0aB44927279d766",
-  "isRunesToken": false,
-  "tokenIds": ["1", "2"],
-  "metadata": "{\"name\": \"Test Campaign\"}",
-  "startTime": 1704067200,
-  "endTime": 1704153600
-}
-```
-
-Push to contract:
 ```bash
-npm run push-root campaign-config.json
+npm run generate-merkle -- \
+  --input test-recipients.csv \
+  --campaign-id 0 \
+  --output merkle-output.json
 ```
 
-Or use command line arguments:
+### Push Merkle Root to Contract
+
 ```bash
-npm run push-root 0x123... 0x456... false "[1,2]" 1704067200 1704153600
+npm run push-root -- \
+  --campaign-id 0 \
+  --merkle-root 0xf1f143a9cd214014a785fdde0c5061743f403e16a9115f33468537236d5afdc5
 ```
 
-## API Endpoints
+### Example: Complete Workflow
 
-### Health Check
-```
-GET /health
-```
+1. **Create CSV file** with recipients
+2. **Generate Merkle tree**:
+   ```bash
+   npm run generate-merkle -- --input recipients.csv --campaign-id 0
+   ```
+3. **Get Merkle root** from output
+4. **Create campaign on-chain** (via frontend or script)
+5. **Start backend server**:
+   ```bash
+   npm run dev
+   ```
+6. **Users request proofs** via API
+7. **Users claim tokens** using proofs
 
-### Create Campaign (Admin)
-```
-POST /campaigns
-Headers:
-  X-API-Key: your-api-key
-  Content-Type: application/json
+## 🧪 Testing
 
-Body:
-{
-  "merkleRoot": "0x...",
-  "tokenContract": "0x...",
-  "isRunesToken": false,
-  "tokenIds": ["1", "2"],
-  "metadata": "{}",
-  "startTime": 1704067200,
-  "endTime": 1704153600
-}
-```
+### Run Tests
 
-### Get Proof
-```
-GET /proof/:campaignId/:address/:tokenId
-
-Example:
-GET /proof/0/0x1111111111111111111111111111111111111111/1
-```
-
-### Get Campaign Status
-```
-GET /status/:campaignId
-
-Example:
-GET /status/0
-```
-
-### Verify RUNES Token
-```
-POST /verify-runes
-Content-Type: application/json
-
-Body:
-{
-  "tokenAddress": "0x...",
-  "runesId": "optional-runes-id"
-}
-```
-
-### List All Campaigns
-```
-GET /campaigns
-```
-
-## Testing
-
-Run tests:
 ```bash
 npm test
 ```
 
-Run tests with coverage:
-```bash
-npm run test:coverage
-```
+### Run Tests in Watch Mode
 
-Watch mode:
 ```bash
 npm run test:watch
 ```
 
-## Project Structure
+### Run Tests with Coverage
+
+```bash
+npm run test:coverage
+```
+
+### Test Structure
+
+- Unit tests for Merkle tree generation
+- API endpoint tests
+- Integration tests with mock contracts
+
+## 🚢 Deployment
+
+### Production Deployment
+
+1. **Set environment variables**:
+   - Use production RPC URL
+   - Use production contract addresses
+   - Set secure API key
+   - Configure CORS for frontend domain
+
+2. **Build the project**:
+   ```bash
+   npm run build
+   ```
+
+3. **Start the server**:
+   ```bash
+   npm start
+   ```
+
+### Using PM2
+
+```bash
+npm install -g pm2
+pm2 start dist/index.js --name airdrop-backend
+pm2 save
+pm2 startup
+```
+
+### Docker (Optional)
+
+Create a `Dockerfile`:
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+Build and run:
+```bash
+docker build -t airdrop-backend .
+docker run -p 3000:3000 --env-file .env airdrop-backend
+```
+
+## 📁 Project Structure
 
 ```
 backend/
 ├── src/
-│   ├── index.ts           # Express API server
-│   ├── storage.ts         # Campaign and claim storage
-│   ├── runes-verification.ts  # RUNES token verification
-│   └── types.ts           # TypeScript types
+│   ├── index.ts              # Express server setup
+│   ├── routes/
+│   │   ├── campaigns.ts      # Campaign routes
+│   │   ├── proof.ts          # Proof routes
+│   │   └── health.ts         # Health check
+│   ├── services/
+│   │   ├── merkle.ts         # Merkle tree generation
+│   │   └── storage.ts        # JSON storage
+│   └── utils/
+│       └── contract.ts       # Contract interaction
 ├── scripts/
-│   ├── generate-merkle.ts # Merkle tree generation CLI
-│   └── push-root.ts       # Push merkle root to contract
+│   ├── generate-merkle.ts    # CLI Merkle generator
+│   └── push-root.ts          # Push root to contract
+├── data/
+│   └── campaigns.json        # Campaign storage
 ├── tests/
-│   ├── merkle.test.ts     # Merkle generation tests
-│   ├── storage.test.ts    # Storage tests
-│   └── runes.test.ts      # RUNES verification tests
-├── out/                   # Generated merkle files
-├── data/                  # Persistent storage (campaigns, claims)
+│   └── *.test.ts             # Test files
 ├── package.json
 ├── tsconfig.json
 └── README.md
 ```
 
-## Environment Variables
+## 🔒 Security
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `PORT` | Server port | No (default: 3000) |
-| `API_KEY` | API key for admin endpoints | Yes |
-| `RPC_URL` | Rootstock RPC endpoint | Yes |
-| `PRIVATE_KEY` | Private key for contract interactions | Yes |
-| `AIRDROP_ENGINE_ADDRESS` | Deployed AirdropEngine address | Yes |
-| `AIRDROP_TOKEN_ADDRESS` | Deployed AirdropToken address | No |
-| `BRIDGE_API_KEY` | Rootstock Bridge API key | No |
-| `BRIDGE_API_URL` | Bridge API endpoint | No |
-| `USE_MOCK_RUNES_VERIFICATION` | Use mock RUNES verification | No (default: true) |
+### Best Practices
 
-## RUNES Verification
+1. **API Key Security**: Use strong, random API keys
+2. **Private Key Security**: Never commit private keys
+3. **CORS Configuration**: Restrict to frontend domain
+4. **Input Validation**: Validate all inputs
+5. **Rate Limiting**: Consider adding rate limiting for production
 
-The backend supports two modes for RUNES verification:
+### Environment Variables
 
-1. **Mock Mode** (default): Validates address format only. Set `USE_MOCK_RUNES_VERIFICATION=true`
-2. **API Mode**: Queries Rootstock Bridge API. Requires `BRIDGE_API_KEY` and `BRIDGE_API_URL`
+- Never commit `.env` files
+- Use different keys for testnet/mainnet
+- Rotate keys regularly
 
-To use real Bridge API:
-1. Get API key from Rootstock
-2. Set `USE_MOCK_RUNES_VERIFICATION=false`
-3. Set `BRIDGE_API_KEY` and `BRIDGE_API_URL`
+## 🔗 Integration
 
-## Example Workflow
+### With Frontend
 
-1. **Prepare recipients list**:
-   ```bash
-   # Create recipients.csv with eligible addresses
-   ```
+The frontend calls the backend API for:
+- Campaign creation
+- Proof retrieval
+- Campaign status
 
-2. **Generate Merkle tree**:
-   ```bash
-   npm run generate-merkle recipients.csv 0
-   ```
+### With Smart Contracts
 
-3. **Start API server**:
-   ```bash
-   npm run dev
-   ```
+The backend can:
+- Push Merkle roots to contracts
+- Verify contract state
+- Monitor transactions
 
-4. **Create campaign via API**:
-   ```bash
-   curl -X POST http://localhost:3000/campaigns \
-     -H "X-API-Key: your-api-key" \
-     -H "Content-Type: application/json" \
-     -d @campaign-config.json
-   ```
-
-5. **Push merkle root to contract**:
-   ```bash
-   npm run push-root campaign-config.json
-   ```
-
-6. **Users can get their proofs**:
-   ```bash
-   curl http://localhost:3000/proof/0/0x1111111111111111111111111111111111111111/1
-   ```
-
-## License
+## 📝 License
 
 MIT
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## 📞 Support
+
+For issues and questions:
+- Check the main README.md
+- Review API documentation
+- Open an issue on GitHub
 
