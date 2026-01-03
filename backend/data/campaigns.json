@@ -1,0 +1,24 @@
+[
+  {
+    "campaignId": 0,
+    "merkleRoot": "0x123",
+    "tokenContract": "0x456",
+    "isRunesToken": false,
+    "tokenIds": [],
+    "metadata": "{}",
+    "startTime": 1000,
+    "endTime": 2000,
+    "createdAt": "2026-01-03T04:21:26.387Z"
+  },
+  {
+    "campaignId": 1,
+    "merkleRoot": "0x789",
+    "tokenContract": "0xabc",
+    "isRunesToken": true,
+    "tokenIds": [],
+    "metadata": "{}",
+    "startTime": 2000,
+    "endTime": 3000,
+    "createdAt": "2026-01-03T04:21:26.387Z"
+  }
+]
