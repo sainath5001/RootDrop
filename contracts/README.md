@@ -187,34 +187,76 @@ rootstock_mainnet = "https://public-node.rsk.co"
 
 ### Deploy to Rootstock Testnet
 
-1. **Set your private key** (without 0x prefix):
+1. **Copy `.env.example` to `.env`**:
+```bash
+cp .env.example .env
+# Edit .env and add your actual private key
+```
+
+2. **Source the `.env` file**:
+```bash
+source .env
+```
+
+   Or set the private key directly (without 0x prefix):
 ```bash
 export PRIVATE_KEY=your_private_key_here
 ```
 
-2. **Deploy contracts**:
+3. **Deploy contracts using the deployment script**:
 ```bash
-forge script script/Deploy.s.sol \
-  --rpc-url rootstock_testnet \
-  --broadcast \
-  --verify \
-  --private-key $PRIVATE_KEY
+chmod +x deploy.sh
+./deploy.sh testnet
 ```
 
-3. **Save contract addresses**:
-After deployment, save the addresses:
-- `AirdropToken` address
-- `AirdropEngine` address
+   Or deploy manually using forge:
+```bash
+forge script script/Deploy.s.sol \
+  --rpc-url https://public-node.testnet.rsk.co \
+  --broadcast \
+  --private-key $PRIVATE_KEY \
+  --legacy
+```
+
+4. **Save contract addresses**:
+After deployment, save the addresses from the output or extract them:
+```bash
+# Extract addresses from deployment output
+jq '.transactions[] | select(.contractName == "AirdropEngine") | .contractAddress' \
+  broadcast/Deploy.s.sol/31/run-latest.json
+
+jq '.transactions[] | select(.contractName == "AirdropToken") | .contractAddress' \
+  broadcast/Deploy.s.sol/31/run-latest.json
+```
+
+   Update these addresses in:
+   - `frontend/contracts/addresses.ts`
+   - `frontend/.env.local` (NEXT_PUBLIC_AIRDROP_ENGINE_ADDRESS, NEXT_PUBLIC_AIRDROP_TOKEN_ADDRESS)
 
 ### Deploy to Rootstock Mainnet
 
+1. **Source the `.env` file** (or set PRIVATE_KEY):
+```bash
+source .env
+# OR
+export PRIVATE_KEY=your_private_key_here
+```
+
+2. **Deploy contracts using the deployment script**:
+```bash
+./deploy.sh mainnet
+```
+
+   Or deploy manually using forge:
 ```bash
 forge script script/Deploy.s.sol \
-  --rpc-url rootstock_mainnet \
+  --rpc-url https://public-node.rsk.co \
   --broadcast \
-  --verify \
-  --private-key $PRIVATE_KEY
+  --private-key $PRIVATE_KEY \
+  --legacy
 ```
+
+⚠️ **Warning**: Always test thoroughly on testnet before deploying to mainnet!
 
 ## 📖 Usage
 

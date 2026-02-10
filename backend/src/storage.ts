@@ -4,7 +4,6 @@ import { Campaign, CampaignStatus } from './types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const CAMPAIGNS_FILE = path.join(DATA_DIR, 'campaigns.json');
-const CLAIMS_FILE = path.join(DATA_DIR, 'claims.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -12,8 +11,8 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 // In-memory storage (can be replaced with database)
+// Note: Claims are tracked on-chain in the contract, not in backend storage
 let campaigns: Map<number, Campaign> = new Map();
-let claims: Map<number, Set<string>> = new Map(); // campaignId -> Set of claimed leaves
 
 /**
  * Load campaigns from file
@@ -44,47 +43,10 @@ export function saveCampaigns(): void {
 }
 
 /**
- * Load claims from file
- */
-export function loadClaims(): void {
-  if (fs.existsSync(CLAIMS_FILE)) {
-    try {
-      const data = fs.readFileSync(CLAIMS_FILE, 'utf-8');
-      const claimsData: Record<string, string[]> = JSON.parse(data);
-      claims = new Map(
-        Object.entries(claimsData).map(([campaignId, leaves]) => [
-          parseInt(campaignId, 10),
-          new Set(leaves)
-        ])
-      );
-    } catch (error) {
-      console.error('Error loading claims:', error);
-      claims = new Map();
-    }
-  }
-}
-
-/**
- * Save claims to file
- */
-export function saveClaims(): void {
-  try {
-    const claimsData: Record<string, string[]> = {};
-    claims.forEach((leaves, campaignId) => {
-      claimsData[campaignId.toString()] = Array.from(leaves);
-    });
-    fs.writeFileSync(CLAIMS_FILE, JSON.stringify(claimsData, null, 2));
-  } catch (error) {
-    console.error('Error saving claims:', error);
-  }
-}
-
-/**
  * Initialize storage
  */
 export function initStorage(): void {
   loadCampaigns();
-  loadClaims();
 }
 
 /**
@@ -118,27 +80,9 @@ export function getNextCampaignId(): number {
 }
 
 /**
- * Mark a claim
+ * Note: Claim tracking has been removed from backend storage.
+ * The source of truth for claims is the blockchain contract.
+ * Use the contract's isClaimed() function to check claim status.
+ * Use event listeners to track claim counts if needed.
  */
-export function markClaimed(campaignId: number, leaf: string): void {
-  if (!claims.has(campaignId)) {
-    claims.set(campaignId, new Set());
-  }
-  claims.get(campaignId)!.add(leaf);
-  saveClaims();
-}
-
-/**
- * Check if a claim is already made
- */
-export function isClaimed(campaignId: number, leaf: string): boolean {
-  return claims.get(campaignId)?.has(leaf) || false;
-}
-
-/**
- * Get claim count for a campaign
- */
-export function getClaimCount(campaignId: number): number {
-  return claims.get(campaignId)?.size || 0;
-}
 

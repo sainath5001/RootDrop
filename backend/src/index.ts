@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import * as path from 'path';
 import * as fs from 'fs';
-import { initStorage, createCampaign, getCampaign, getCampaigns, getNextCampaignId, getClaimCount, markClaimed, isClaimed } from './storage';
+import { initStorage, createCampaign, getCampaign, getCampaigns, getNextCampaignId } from './storage';
 import { verifyRunes } from './runes-verification';
 import { Campaign, CreateCampaignRequest, ProofResponse, CampaignStatus } from './types';
 import { keccak256, solidityPacked } from 'ethers';
@@ -89,6 +89,13 @@ app.post('/campaigns', verifyApiKey, async (req: Request, res: Response) => {
 });
 
 /**
+ * Validate Ethereum address format
+ */
+function isValidAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+}
+
+/**
  * GET /proof/:campaignId/:address/:tokenId - Get proof for a user
  */
 app.get('/proof/:campaignId/:address/:tokenId', async (req: Request, res: Response) => {
@@ -96,6 +103,11 @@ app.get('/proof/:campaignId/:address/:tokenId', async (req: Request, res: Respon
     const campaignId = parseInt(req.params.campaignId, 10);
     const address = req.params.address.toLowerCase();
     const tokenId = req.params.tokenId;
+
+    // Validate address format
+    if (!isValidAddress(address)) {
+      return res.status(400).json({ error: 'Invalid address format' });
+    }
 
     const campaign = getCampaign(campaignId);
     if (!campaign) {
@@ -186,13 +198,14 @@ app.get('/status/:campaignId', async (req: Request, res: Response) => {
       }
     }
 
-    const claimedCount = getClaimCount(campaignId);
+    // Claim count is tracked on-chain in the contract, not in backend storage
+    // Query the contract's campaign.totalClaimed or use event listeners for accurate count
     const now = Math.floor(Date.now() / 1000);
 
     const status: CampaignStatus = {
       campaignId,
       totalRecipients,
-      claimedCount,
+      claimedCount: 0, // Claims are tracked on-chain, query contract for accurate count
       active: campaign.startTime <= now && now <= campaign.endTime,
       startTime: campaign.startTime,
       endTime: campaign.endTime
@@ -252,6 +265,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Start server
 app.listen(PORT, () => {
+  // Server startup logs are acceptable for production
   console.log(`🚀 Airdrop Backend Server running on port ${PORT}`);
   console.log(`📝 API Key required for admin endpoints`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);

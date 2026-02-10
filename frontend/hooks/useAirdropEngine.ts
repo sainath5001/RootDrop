@@ -1,6 +1,7 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { AIRDROP_ENGINE_ADDRESS } from '@/contracts/addresses';
 import AirdropEngineABI from '@/contracts/abis/AirdropEngine.json';
+import { keccak256, stringToBytes } from 'viem';
 
 export function useCampaignCounter() {
   return useReadContract({
@@ -90,6 +91,19 @@ export function useIsClaimed(campaignId: bigint, leafHash: `0x${string}`) {
     abi: AirdropEngineABI,
     functionName: 'isClaimed',
     args: [campaignId, leafHash],
+  });
+}
+
+export function useHasAdminRole(address: `0x${string}` | undefined) {
+  // ADMIN_ROLE = keccak256("ADMIN_ROLE")
+  const ADMIN_ROLE = keccak256(stringToBytes('ADMIN_ROLE')) as `0x${string}`;
+  
+  return useReadContract({
+    address: AIRDROP_ENGINE_ADDRESS,
+    abi: AirdropEngineABI,
+    functionName: 'hasRole',
+    args: address ? [ADMIN_ROLE, address] : undefined,
+    query: { enabled: !!address },
   });
 }
 

@@ -18,20 +18,6 @@ export function ClaimForm() {
     tokenId
   );
 
-  // Debug logging
-  useEffect(() => {
-    if (campaignId && tokenId && address) {
-      console.log('ClaimForm Debug:', {
-        campaignId,
-        tokenId,
-        address: address.toLowerCase(),
-        isLoadingProof,
-        proofError,
-        proofData,
-        apiUrl: process.env.NEXT_PUBLIC_API_URL
-      });
-    }
-  }, [campaignId, tokenId, address, isLoadingProof, proofError, proofData]);
 
   const claim = useClaim();
   const { data: balance } = useTokenBalance(tokenId ? BigInt(tokenId) : 0n);
@@ -127,13 +113,10 @@ export function ClaimForm() {
               try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
                 const url = `${apiUrl}/proof/${campaignId}/${address.toLowerCase()}/${tokenId}`;
-                console.log('Testing API:', url);
                 const response = await fetch(url);
                 const data = await response.json();
-                console.log('API Response:', data);
                 alert(`API Test: ${response.status === 200 ? 'SUCCESS' : 'FAILED'}\n\nResponse: ${JSON.stringify(data, null, 2)}`);
               } catch (error: any) {
-                console.error('API Test Error:', error);
                 alert(`API Test FAILED: ${error.message}`);
               }
             }}

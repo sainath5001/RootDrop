@@ -6,10 +6,7 @@ import {
   createCampaign,
   getCampaign,
   getCampaigns,
-  getNextCampaignId,
-  markClaimed,
-  isClaimed,
-  getClaimCount
+  getNextCampaignId
 } from '../src/storage';
 import { Campaign } from '../src/types';
 
@@ -19,9 +16,7 @@ describe('Storage', () => {
     const dataDir = path.join(process.cwd(), 'data');
     if (fs.existsSync(dataDir)) {
       const campaignsFile = path.join(dataDir, 'campaigns.json');
-      const claimsFile = path.join(dataDir, 'claims.json');
       if (fs.existsSync(campaignsFile)) fs.unlinkSync(campaignsFile);
-      if (fs.existsSync(claimsFile)) fs.unlinkSync(claimsFile);
     }
     initStorage();
   });
@@ -76,18 +71,9 @@ describe('Storage', () => {
     expect(id2).toBe(id1 + 1);
   });
 
-  it('should track claims', () => {
-    const campaignId = 0;
-    const leaf = '0xabc123';
-
-    expect(isClaimed(campaignId, leaf)).toBe(false);
-    expect(getClaimCount(campaignId)).toBe(0);
-
-    markClaimed(campaignId, leaf);
-
-    expect(isClaimed(campaignId, leaf)).toBe(true);
-    expect(getClaimCount(campaignId)).toBe(1);
-  });
+  // Note: Claim tracking has been removed from backend storage
+  // Claims are now tracked on-chain in the contract
+  // Use contract's isClaimed() function to check claim status
 
   it('should get all campaigns', () => {
     const campaign1: Campaign = {

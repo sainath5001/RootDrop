@@ -104,7 +104,6 @@ async function verifyRunesAPI(tokenAddress: string, runesId?: string): Promise<R
  */
 export async function verifyRunes(tokenAddress: string, runesId?: string): Promise<RunesVerificationResult> {
   if (USE_MOCK) {
-    console.log('Using mock RUNES verification');
     return mockVerifyRunes(tokenAddress, runesId);
   }
 

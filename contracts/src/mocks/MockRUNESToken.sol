@@ -17,6 +17,12 @@ contract MockRUNESToken is IRUNESToken {
     string public symbol;
     uint8 public decimals;
 
+    /// @notice Emitted when tokens are transferred
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    /// @notice Emitted when allowance is set
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -48,6 +54,8 @@ contract MockRUNESToken is IRUNESToken {
         _balances[msg.sender] -= amount;
         _balances[to] += amount;
 
+        emit Transfer(msg.sender, to, amount);
+
         return true;
     }
 
@@ -67,6 +75,8 @@ contract MockRUNESToken is IRUNESToken {
         _balances[to] += amount;
         _allowances[from][msg.sender] -= amount;
 
+        emit Transfer(from, to, amount);
+
         return true;
     }
 
@@ -75,6 +85,7 @@ contract MockRUNESToken is IRUNESToken {
         uint256 amount
     ) external override returns (bool) {
         _allowances[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
         return true;
     }
 

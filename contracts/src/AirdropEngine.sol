@@ -36,6 +36,9 @@ contract AirdropEngine is AccessControl, IERC1155Receiver {
     /// @notice Mapping to track claimed leaves (campaignId => leafHash => claimed)
     mapping(uint256 => mapping(bytes32 => bool)) public claimed;
 
+    /// @notice Mapping to track valid tokenIds for campaigns (campaignId => tokenId => valid)
+    mapping(uint256 => mapping(uint256 => bool)) public validTokenIds;
+
     /// @notice Counter for campaign IDs
     uint256 public campaignCounter;
 
@@ -101,6 +104,16 @@ contract AirdropEngine is AccessControl, IERC1155Receiver {
         uint256 campaignId = campaignCounter;
         campaignCounter++;
 
+        // Populate validTokenIds mapping for O(1) lookup
+        if (!isRunesToken) {
+            for (uint256 i = 0; i < tokenIds.length;) {
+                validTokenIds[campaignId][tokenIds[i]] = true;
+                unchecked {
+                    ++i;
+                }
+            }
+        }
+
         campaigns[campaignId] = Campaign({
             tokenContract: tokenContract,
             isRunesToken: isRunesToken,
@@ -133,18 +146,11 @@ contract AirdropEngine is AccessControl, IERC1155Receiver {
         require(block.timestamp >= campaign.startTime, "AirdropEngine: campaign not started");
         require(block.timestamp <= campaign.endTime, "AirdropEngine: campaign ended");
 
-        // Verify tokenId is valid for the campaign
+        // Verify tokenId is valid for the campaign (O(1) lookup using mapping)
         if (campaign.isRunesToken) {
             require(tokenId == 0, "AirdropEngine: invalid tokenId for RUNES");
         } else {
-            bool validTokenId = false;
-            for (uint256 i = 0; i < campaign.tokenIds.length; i++) {
-                if (campaign.tokenIds[i] == tokenId) {
-                    validTokenId = true;
-                    break;
-                }
-            }
-            require(validTokenId, "AirdropEngine: invalid tokenId");
+            require(validTokenIds[campaignId][tokenId], "AirdropEngine: invalid tokenId");
         }
 
         // Create leaf hash: keccak256(abi.encodePacked(campaignId, msg.sender, tokenId, amount))
@@ -164,10 +170,12 @@ contract AirdropEngine is AccessControl, IERC1155Receiver {
         if (campaign.isRunesToken) {
             // Transfer RUNES tokens
             IRUNESToken runesToken = IRUNESToken(campaign.tokenContract);
+            require(runesToken.balanceOf(address(this)) >= amount, "AirdropEngine: insufficient RUNES balance");
             require(runesToken.transfer(msg.sender, amount), "AirdropEngine: RUNES transfer failed");
         } else {
             // Transfer ERC1155 tokens
             IERC1155 erc1155Token = IERC1155(campaign.tokenContract);
+            require(erc1155Token.balanceOf(address(this), tokenId) >= amount, "AirdropEngine: insufficient ERC1155 balance");
             erc1155Token.safeTransferFrom(address(this), msg.sender, tokenId, amount, "");
         }
 
@@ -240,6 +248,37 @@ contract AirdropEngine is AccessControl, IERC1155Receiver {
      */
     function isClaimed(uint256 campaignId, bytes32 leafHash) public view returns (bool) {
         return claimed[campaignId][leafHash];
+    }
+
+    /**
+     * @notice Withdraw unclaimed tokens after campaign ends (admin only)
+     * @param campaignId ID of the campaign
+     * @param tokenId Token ID to withdraw (for ERC1155) or 0 (for RUNES)
+     * @param amount Amount of tokens to withdraw
+     * @param recipient Address to receive the withdrawn tokens
+     */
+    function withdrawUnclaimedTokens(
+        uint256 campaignId,
+        uint256 tokenId,
+        uint256 amount,
+        address recipient
+    ) public onlyRole(ADMIN_ROLE) {
+        Campaign storage campaign = campaigns[campaignId];
+        require(campaign.tokenContract != address(0), "AirdropEngine: campaign does not exist");
+        require(block.timestamp > campaign.endTime, "AirdropEngine: campaign not ended");
+        require(recipient != address(0), "AirdropEngine: invalid recipient");
+
+        if (campaign.isRunesToken) {
+            require(tokenId == 0, "AirdropEngine: invalid tokenId for RUNES");
+            IRUNESToken runesToken = IRUNESToken(campaign.tokenContract);
+            require(runesToken.balanceOf(address(this)) >= amount, "AirdropEngine: insufficient RUNES balance");
+            require(runesToken.transfer(recipient, amount), "AirdropEngine: RUNES transfer failed");
+        } else {
+            require(validTokenIds[campaignId][tokenId], "AirdropEngine: invalid tokenId");
+            IERC1155 erc1155Token = IERC1155(campaign.tokenContract);
+            require(erc1155Token.balanceOf(address(this), tokenId) >= amount, "AirdropEngine: insufficient ERC1155 balance");
+            erc1155Token.safeTransferFrom(address(this), recipient, tokenId, amount, "");
+        }
     }
 
     /**
