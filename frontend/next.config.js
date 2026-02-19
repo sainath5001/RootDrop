@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Next.js 16: Turbopack is default; empty config silences "webpack config with no turbopack config" and keeps dev stable
+  turbopack: {},
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
@@ -8,7 +10,6 @@ const nextConfig = {
       net: false,
       tls: false,
     };
-    // Ignore optional dependencies that aren't needed in browser
     config.resolve.alias = {
       ...config.resolve.alias,
       '@react-native-async-storage/async-storage': false,
