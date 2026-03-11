@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useProof } from '@/hooks/useBackendAPI';
 import { useClaim, useIsClaimed } from '@/hooks/useAirdropEngine';
 import { useTokenBalance } from '@/hooks/useAirdropToken';
 import { keccak256, encodePacked } from 'viem';
+import { Button } from '@/components/ui/Button';
+import { Alert } from '@/components/ui/Alert';
 
 export function ClaimForm() {
   const { address } = useAccount();
@@ -18,18 +20,16 @@ export function ClaimForm() {
     tokenId
   );
 
-
   const claim = useClaim();
   const { data: balance } = useTokenBalance(tokenId ? BigInt(tokenId) : 0n);
 
-  // Calculate leaf hash to check if already claimed
   const leafHash = campaignId && address && tokenId && proofData
     ? keccak256(
-      encodePacked(
-        ['uint256', 'address', 'uint256', 'uint256'],
-        [BigInt(campaignId), address as `0x${string}`, BigInt(tokenId), BigInt(proofData.amount)]
+        encodePacked(
+          ['uint256', 'address', 'uint256', 'uint256'],
+          [BigInt(campaignId), address as `0x${string}`, BigInt(tokenId), BigInt(proofData.amount)]
+        )
       )
-    )
     : undefined;
 
   const { data: isClaimedData } = useIsClaimed(
@@ -56,59 +56,51 @@ export function ClaimForm() {
     }
   };
 
+  const inputClass =
+    'w-full px-4 py-3 bg-rsk-secondary border border-rsk-border rounded-xl text-rsk-text placeholder-rsk-muted/60 focus:ring-2 focus:ring-rsk-primary/50 focus:border-rsk-primary/50 transition-all duration-200';
+
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-rsk-muted mb-2">
           Campaign ID
         </label>
         <input
           type="number"
           value={campaignId}
           onChange={(e) => setCampaignId(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-lg"
+          className={inputClass}
           placeholder="0"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label className="block text-sm font-semibold text-rsk-muted mb-2">
           Token ID
         </label>
         <input
           type="number"
           value={tokenId}
           onChange={(e) => setTokenId(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-lg"
+          className={inputClass}
           placeholder="1"
         />
       </div>
 
       {!address && campaignId && tokenId && (
-        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-xl p-6 mt-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <p className="text-yellow-800 font-bold text-lg">
-              Wallet Not Connected
-            </p>
-          </div>
-          <p className="text-sm text-yellow-700 mb-2">
-            You've entered Campaign ID: <span className="font-semibold">{campaignId}</span> and Token ID: <span className="font-semibold">{tokenId}</span>
+        <Alert variant="warning" title="Wallet Not Connected">
+          <p className="mb-1">
+            You&apos;ve entered Campaign ID: <span className="font-semibold text-rsk-text">{campaignId}</span> and Token ID: <span className="font-semibold text-rsk-text">{tokenId}</span>.
           </p>
-          <p className="text-sm text-yellow-700">
-            Please connect your wallet using the button in the top right corner to check eligibility.
-          </p>
-        </div>
+          <p>Connect your wallet using the button in the header to check eligibility.</p>
+        </Alert>
       )}
 
       {campaignId && tokenId && address && (
-        <div className="mt-6">
-          {/* Test button to manually check */}
-          <button
+        <div className="mt-6 space-y-4">
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={async () => {
               try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -120,103 +112,71 @@ export function ClaimForm() {
                 alert(`API Test FAILED: ${error.message}`);
               }
             }}
-            className="mb-4 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium"
+            className="text-rsk-muted"
           >
             🔧 Test API Connection
-          </button>
+          </Button>
 
           {isLoadingProof ? (
             <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
-              <p className="text-lg font-semibold text-gray-900">Loading proof...</p>
-              <p className="text-sm text-gray-500 mt-2">
-                Checking eligibility for address: {address.slice(0, 6)}...{address.slice(-4)}
+              <div className="inline-block w-12 h-12 border-2 border-rsk-primary border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-rsk-text font-semibold">Loading proof...</p>
+              <p className="text-sm text-rsk-muted mt-2">
+                Checking eligibility for {address.slice(0, 6)}...{address.slice(-4)}
               </p>
-              <p className="text-xs text-gray-400 mt-2">
-                If this takes too long, click "Test API Connection" above
+              <p className="text-xs text-rsk-muted mt-2">
+                If this takes too long, click &quot;Test API Connection&quot; above
               </p>
             </div>
           ) : proofError ? (
-            <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </div>
-                <p className="text-red-800 font-bold text-lg">
-                  {proofError.message || 'Not eligible for this airdrop'}
-                </p>
-              </div>
-              <p className="text-sm text-red-700">
-                Make sure your wallet address matches the one in the campaign CSV file.
-              </p>
-            </div>
+            <Alert variant="error" title={proofError.message || 'Not eligible for this airdrop'}>
+              Make sure your wallet address matches the one in the campaign CSV file.
+            </Alert>
           ) : proofData ? (
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-green-800 font-bold text-xl">
-                      You are eligible for this airdrop!
-                    </p>
-                    <p className="text-lg text-green-700 font-semibold mt-1">
-                      Amount: {proofData.amount} tokens
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <Alert variant="success" title="You are eligible for this airdrop!">
+                <p className="font-semibold text-rsk-text">Amount: {proofData.amount} tokens</p>
+              </Alert>
 
               {isClaimedData ? (
-                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-xl p-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                    </div>
-                    <p className="text-yellow-800 font-bold text-lg">
-                      You have already claimed this airdrop
-                    </p>
-                  </div>
-                </div>
+                <Alert variant="warning" title="Already claimed">
+                  You have already claimed this airdrop.
+                </Alert>
               ) : (
                 <>
                   {balance !== undefined && (
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-4">
-                      <p className="text-blue-800 font-semibold">
-                        Current Balance: <span className="text-xl font-bold">{balance?.toString() || '0'}</span> tokens
+                    <div className="bg-rsk-accent/10 border border-rsk-accent/30 rounded-xl p-4">
+                      <p className="text-rsk-muted text-sm">
+                        Current Balance: <span className="text-rsk-text font-bold text-lg">{balance?.toString() || '0'}</span> tokens
                       </p>
                     </div>
                   )}
 
-                  <button
-                    onClick={handleClaim}
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    isLoading={claim.isPending || claim.isConfirming}
                     disabled={claim.isPending || claim.isConfirming}
-                    className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 disabled:opacity-50 font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:cursor-not-allowed"
+                    onClick={handleClaim}
                   >
                     {claim.isPending
                       ? 'Preparing transaction...'
                       : claim.isConfirming
-                        ? 'Confirming transaction...'
+                        ? 'Confirming...'
                         : claim.isSuccess
-                          ? 'Claimed Successfully!'
+                          ? 'Claimed successfully!'
                           : 'Claim Tokens'}
-                  </button>
+                  </Button>
 
                   {claim.hash && (
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-600 mb-2">Transaction Hash:</p>
+                    <div className="mt-4 p-4 bg-rsk-secondary rounded-xl border border-rsk-border">
+                      <p className="text-sm text-rsk-muted mb-2">Transaction</p>
                       <a
                         href={`https://explorer.testnet.rsk.co/tx/${claim.hash}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline break-all"
+                        className="text-rsk-accent hover:underline break-all text-sm font-mono"
                       >
                         {claim.hash}
                       </a>
@@ -224,23 +184,21 @@ export function ClaimForm() {
                   )}
 
                   {claim.error && (
-                    <div className="bg-red-50 border border-red-200 rounded p-4">
-                      <p className="text-red-800">
-                        Error: {claim.error.message || 'Transaction failed'}
-                      </p>
-                    </div>
+                    <Alert variant="error" title="Transaction failed">
+                      {claim.error.message || 'Transaction failed'}
+                    </Alert>
                   )}
                 </>
               )}
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-300 rounded-xl p-6 text-center">
-              <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="rounded-xl border border-rsk-border bg-rsk-secondary/50 p-6 text-center">
+              <div className="w-12 h-12 bg-rsk-muted/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-rsk-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <p className="text-gray-700 font-semibold">
+              <p className="text-rsk-muted font-medium">
                 {!campaignId && !tokenId
                   ? 'Enter campaign ID and token ID to check eligibility'
                   : !address
@@ -254,4 +212,3 @@ export function ClaimForm() {
     </div>
   );
 }
-

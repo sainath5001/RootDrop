@@ -1,13 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --rsk-bg: #0B0F1A;
+  --rsk-primary: #F7931A;
+  --rsk-secondary: #1B2330;
+  --rsk-accent: #FFA726;
+  --rsk-text: #FFFFFF;
+  --rsk-muted: #8A94A6;
+  --rsk-card: #151B28;
+  --rsk-border: #252D3D;
 }
 
 * {
@@ -18,20 +23,27 @@
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #1f2937;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  color: var(--rsk-text);
+  background: var(--rsk-bg);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--rsk-primary);
+  outline-offset: 2px;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-  
-  .glass {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+
+  .glass-rsk {
+    background: rgba(27, 35, 48, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(37, 45, 61, 0.8);
   }
 }
-
