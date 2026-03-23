@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { WalletButton } from './WalletButton';
+import { RootstockLogo } from './RootstockLogo';
 
 export function Header() {
   return (
@@ -13,8 +14,8 @@ export function Header() {
               href="/"
               className="flex items-center gap-2.5 group transition-opacity hover:opacity-90"
             >
-              <div className="w-9 h-9 bg-rsk-primary/20 border border-rsk-primary/40 rounded-xl flex items-center justify-center group-hover:shadow-rsk-glow transition-shadow duration-200">
-                <span className="text-rsk-primary font-bold text-lg">R</span>
+              <div className="w-9 h-9 bg-rsk-primary/20 border border-rsk-primary/40 rounded-xl flex items-center justify-center p-1.5 group-hover:shadow-rsk-glow transition-shadow duration-200">
+                <RootstockLogo width={36} height={36} className="w-full h-full object-contain" priority />
               </div>
               <span className="text-lg font-bold text-rsk-text hidden sm:inline">
                 Rootstock Airdrop

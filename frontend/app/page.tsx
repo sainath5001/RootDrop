@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
+import { RootstockLogo } from '@/components/RootstockLogo';
 
 export default function Home() {
   return (
@@ -11,8 +12,8 @@ export default function Home() {
       <section className="relative py-16 sm:py-20 lg:py-24 px-4">
         <Container size="lg" className="relative z-10">
           <div className="text-center mb-14 sm:mb-16">
-            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-rsk-primary/20 border border-rsk-primary/40 rounded-2xl mb-6 shadow-rsk-glow animate-fade-in">
-              <span className="text-rsk-primary font-bold text-3xl sm:text-4xl">R</span>
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-rsk-primary/20 border border-rsk-primary/40 rounded-2xl mb-6 p-3 sm:p-4 shadow-rsk-glow animate-fade-in">
+              <RootstockLogo width={80} height={80} className="w-full h-full object-contain" priority />
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-rsk-text animate-slide-up">
               Rootstock Airdrop System

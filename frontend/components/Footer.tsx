@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { RootstockLogo } from '@/components/RootstockLogo';
 
 export function Footer() {
   return (
@@ -7,8 +8,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 bg-rsk-primary/20 border border-rsk-primary/40 rounded-xl flex items-center justify-center">
-                <span className="text-rsk-primary font-bold text-lg">R</span>
+              <div className="w-9 h-9 bg-rsk-primary/20 border border-rsk-primary/40 rounded-xl flex items-center justify-center p-1.5">
+                <RootstockLogo width={36} height={36} className="w-full h-full object-contain" />
               </div>
               <span className="text-lg font-semibold text-rsk-text">Rootstock Airdrop</span>
             </div>
